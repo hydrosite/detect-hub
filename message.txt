@@ -1,0 +1,858 @@
+-- Create a GUI
+local GUI = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ButtonContainer = Instance.new("ScrollingFrame")
+
+GUI.Name = "Detect Hub"
+GUI.ResetOnSpawn = false -- Ensure GUI persists after respawn
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0, 0, 0, 0) -- Set position to (0, 0) by default
+MainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.5
+MainFrame.BorderSizePixel = 5
+
+local colors = {
+    Color3.new(1, 0, 0), -- Red
+    Color3.new(0, 1, 0), -- Green
+    Color3.new(1, 1, 0), -- Yellow
+    Color3.new(0, 0, 1), -- Blue
+    Color3.new(1, 0, 1) -- Purple
+}
+
+local colorIndex = 1
+local colorTransition = 0
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    colorTransition = colorTransition + 0.01
+    if colorTransition > 1 then
+        colorTransition = 0
+        colorIndex = (colorIndex % #colors) + 1
+    end
+    local currentColor = colors[colorIndex]
+    local nextColor = colors[(colorIndex + 1) % #colors + 1]
+    MainFrame.BorderColor3 = currentColor:lerp(nextColor, colorTransition)
+    MainFrame.BorderColor3 = MainFrame.BorderColor3 * 1.5 -- Make the color brighter
+end)
+
+Title.Size = UDim2.new(0, 300, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.Font = Enum.Font.SourceSans
+Title.FontSize = Enum.FontSize.Size24
+Title.TextColor3 = Color3.new(0, 0, 0)
+Title.TextStrokeTransparency = 0
+Title.TextStrokeColor3 = Color3.fromRGB(165, 42, 42)
+Title.Text = "Detect Hub"
+
+ButtonContainer.Size = UDim2.new(0, 300, 0, 370)
+ButtonContainer.Position = UDim2.new(0, 0, 0, 30)
+ButtonContainer.BackgroundColor3 = Color3.new(0, 0, 0)
+ButtonContainer.BackgroundTransparency = 0.5
+ButtonContainer.ScrollBarThickness = 10
+
+GUI.Parent = game.Players.LocalPlayer.PlayerGui
+MainFrame.Parent = GUI
+Title.Parent = MainFrame
+ButtonContainer.Parent = MainFrame
+
+-- Make the GUI draggable
+local UserInputService = game:GetService("UserInputService")
+local dragging = false
+local dragInput = nil
+local dragStart = nil
+local startPos = nil
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if dragging and dragInput then
+        update(dragInput)
+    end
+end)
+
+-- Create buttons
+local function createButton(name, callback, position)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 280, 0, 30)
+    Button.Position = UDim2.new(0, 10, 0, position)
+    Button.Font = Enum.Font.SourceSans
+    Button.FontSize = Enum.FontSize.Size18
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.TextStrokeTransparency = 0
+    Button.TextStrokeColor3 = Color3.new(0, 0, 0)
+    Button.Text = name
+    Button.BackgroundColor3 = Color3.new(0, 0, 0)
+    Button.BackgroundTransparency = 0.5
+    Button.MouseButton1Click:Connect(callback)
+    Button.Parent = ButtonContainer
+    return Button
+end
+
+-- Walkspeed button
+local WalkspeedButton = createButton("Walkspeed", function()
+    local WalkspeedFrame = Instance.new("Frame")
+    WalkspeedFrame.Size = UDim2.new(0, 200, 0, 50)
+    WalkspeedFrame.Position = UDim2.new(0, 50, 0, 50)
+    WalkspeedFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    WalkspeedFrame.BackgroundTransparency = 0.5
+
+    local WalkspeedLabel = Instance.new("TextLabel")
+    WalkspeedLabel.Size = UDim2.new(0, 200, 0, 20)
+    WalkspeedLabel.Position = UDim2.new(0, 0, 0, 0)
+    WalkspeedLabel.Font = Enum.Font.SourceSans
+    WalkspeedLabel.FontSize = Enum.FontSize.Size18
+    WalkspeedLabel.TextColor3 = Color3.new(1, 1, 1)
+    WalkspeedLabel.TextStrokeTransparency = 0
+    WalkspeedLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    WalkspeedLabel.Text = "Enter walkspeed value (max 999)"
+
+    local WalkspeedInput = Instance.new("TextBox")
+    WalkspeedInput.Size = UDim2.new(0, 200, 0, 30)
+    WalkspeedInput.Position = UDim2.new(0, 0, 0, 30)
+    WalkspeedInput.Font = Enum.Font.SourceSans
+    WalkspeedInput.FontSize = Enum.FontSize.Size18
+    WalkspeedInput.TextColor3 = Color3.new(1, 1, 1)
+    WalkspeedInput.TextStrokeTransparency = 0
+    WalkspeedInput.TextStrokeColor3 = Color3.new(0, 0, 0)
+    WalkspeedInput.BackgroundColor3 = Color3.new(0, 0, 0)
+    WalkspeedInput.BackgroundTransparency = 0.5
+    WalkspeedInput.Text = ""
+
+    WalkspeedInput.Changed:Connect(function(property)
+        if property == "Text" then
+            local text = WalkspeedInput.Text
+            if #text > 3 then
+                WalkspeedInput.Text = text:sub(1, 3)
+            end
+        end
+    end)
+
+    local WalkspeedSubmit = Instance.new("TextButton")
+    WalkspeedSubmit.Size = UDim2.new(0, 200, 0, 30)
+    WalkspeedSubmit.Position = UDim2.new(0, 0, 0, 60)
+    WalkspeedSubmit.Font = Enum.Font.SourceSans
+    WalkspeedSubmit.FontSize = Enum.FontSize.Size18
+    WalkspeedSubmit.TextColor3 = Color3.new(1, 1, 1)
+    WalkspeedSubmit.TextStrokeTransparency = 0
+    WalkspeedSubmit.TextStrokeColor3 = Color3.new(0, 0, 0)
+    WalkspeedSubmit.Text = "Submit"
+    WalkspeedSubmit.BackgroundColor3 = Color3.new(0, 0, 0)
+    WalkspeedSubmit.BackgroundTransparency = 0.5
+    WalkspeedSubmit.MouseButton1Click:Connect(function()
+        local walkspeed = tonumber(WalkspeedInput.Text)
+        if walkspeed and walkspeed <= 999 then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = walkspeed
+            WalkspeedFrame:Destroy() -- Close the window
+        else
+            WalkspeedInput.Text = ""
+            WalkspeedLabel.Text = "Invalid walkspeed value (max 999)"
+        end
+    end)
+
+    WalkspeedFrame.Parent = GUI
+    WalkspeedLabel.Parent = WalkspeedFrame
+    WalkspeedInput.Parent = WalkspeedFrame
+    WalkspeedSubmit.Parent = WalkspeedFrame
+end, 0)
+
+-- Create walkspeed reset button
+local WalkspeedResetButton = createButton("Reset WalkSpeed", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+end, 30)
+
+-- Create jump height button
+local JumpHeightButton = createButton("Jump Height", function()
+    local JumpHeightFrame = Instance.new("Frame")
+    JumpHeightFrame.Size = UDim2.new(0, 200, 0, 50)
+    JumpHeightFrame.Position = UDim2.new(0, 50, 0, 50)
+    JumpHeightFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    JumpHeightFrame.BackgroundTransparency = 0.5
+
+    local JumpHeightLabel = Instance.new("TextLabel")
+    JumpHeightLabel.Size = UDim2.new(0, 200, 0, 20)
+    JumpHeightLabel.Position = UDim2.new(0, 0, 0, 0)
+    JumpHeightLabel.Font = Enum.Font.SourceSans
+    JumpHeightLabel.FontSize = Enum.FontSize.Size18
+    JumpHeightLabel.TextColor3 = Color3.new(1, 1, 1)
+    JumpHeightLabel.TextStrokeTransparency = 0
+    JumpHeightLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    JumpHeightLabel.Text = "Enter jump height value (max 500)"
+
+    local JumpHeightInput = Instance.new("TextBox")
+    JumpHeightInput.Size = UDim2.new(0, 200, 0, 30)
+    JumpHeightInput.Position = UDim2.new(0, 0, 0, 30)
+    JumpHeightInput.Font = Enum.Font.SourceSans
+    JumpHeightInput.FontSize = Enum.FontSize.Size18
+    JumpHeightInput.TextColor3 = Color3.new(1, 1, 1)
+    JumpHeightInput.TextStrokeTransparency = 0
+    JumpHeightInput.TextStrokeColor3 = Color3.new(0, 0, 0)
+    JumpHeightInput.BackgroundColor3 = Color3.new(0, 0, 0)
+    JumpHeightInput.BackgroundTransparency = 0.5
+    JumpHeightInput.Text = ""
+
+    JumpHeightInput.Changed:Connect(function(property)
+        if property == "Text" then
+            local text = JumpHeightInput.Text
+            if #text > 3 then
+                JumpHeightInput.Text = text:sub(1, 3)
+            end
+        end
+    end)
+
+    local JumpHeightSubmit = Instance.new("TextButton")
+    JumpHeightSubmit.Size = UDim2.new(0, 200, 0, 30)
+    JumpHeightSubmit.Position = UDim2.new(0, 0, 0, 60)
+    JumpHeightSubmit.Font = Enum.Font.SourceSans
+    JumpHeightSubmit.FontSize = Enum.FontSize.Size18
+    JumpHeightSubmit.TextColor3 = Color3.new(1, 1, 1)
+    JumpHeightSubmit.TextStrokeTransparency = 0
+    JumpHeightSubmit.TextStrokeColor3 = Color3.new(0, 0, 0)
+    JumpHeightSubmit.Text = "Submit"
+    JumpHeightSubmit.BackgroundColor3 = Color3.new(0, 0, 0)
+    JumpHeightSubmit.BackgroundTransparency = 0.5
+    JumpHeightSubmit.MouseButton1Click:Connect(function()
+        local jumpheight = tonumber(JumpHeightInput.Text)
+        if jumpheight and jumpheight <= 500 then
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = jumpheight
+            JumpHeightFrame:Destroy() -- Close the window
+        else
+            JumpHeightInput.Text = ""
+            JumpHeightLabel.Text = "Invalid jump height value (max 500)"
+        end
+    end)
+
+    JumpHeightFrame.Parent = GUI
+    JumpHeightLabel.Parent = JumpHeightFrame
+    JumpHeightInput.Parent = JumpHeightFrame
+    JumpHeightSubmit.Parent = JumpHeightFrame
+end, 60)
+
+-- Create jump height reset button
+local JumpHeightResetButton = createButton("Reset Jump Height", function()
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
+end, 90)
+
+-- Create fly button
+local FlyButton = Instance.new("TextButton")
+FlyButton.Size = UDim2.new(0, 280, 0, 30)
+FlyButton.Position = UDim2.new(0, 10, 0, 120)
+FlyButton.Font = Enum.Font.SourceSans
+FlyButton.FontSize = Enum.FontSize.Size18
+FlyButton.TextColor3 = Color3.new(1, 1, 1)
+FlyButton.TextStrokeTransparency = 0
+FlyButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+FlyButton.Text = "Infinite Jump"
+FlyButton.BackgroundColor3 = Color3.new(0, 0, 0)
+FlyButton.BackgroundTransparency = 0.5
+FlyButton.Parent = ButtonContainer
+
+local infjmp = false
+FlyButton.MouseButton1Click:Connect(function()
+    infjmp = not infjmp
+    if infjmp then
+        FlyButton.Text = "Infinite Jump (ON)"
+    else
+        FlyButton.Text = "Infinite Jump (OFF)"
+    end
+end)
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if infjmp then
+        game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+-- Create undetectable section
+local UndetectableSection = Instance.new("Frame")
+UndetectableSection.Size = UDim2.new(0, 280, 0, 80)
+UndetectableSection.Position = UDim2.new(0, 10, 0, 150)
+UndetectableSection.BackgroundColor3 = Color3.new(0, 0, 0)
+UndetectableSection.BackgroundTransparency = 0.5
+UndetectableSection.Parent = ButtonContainer
+
+local UndetectableTitle = Instance.new("TextLabel")
+UndetectableTitle.Size = UDim2.new(0, 280, 0, 20)
+UndetectableTitle.Position = UDim2.new(0, 0, 0, 0)
+UndetectableTitle.Font = Enum.Font.SourceSans
+UndetectableTitle.FontSize = Enum.FontSize.Size18
+UndetectableTitle.TextColor3 = Color3.new(1, 1, 1)
+UndetectableTitle.TextStrokeTransparency = 0
+UndetectableTitle.TextStrokeColor3 = Color3.new(0, 0, 0)
+UndetectableTitle.Text = "Undetectable"
+UndetectableTitle.Parent = UndetectableSection
+
+local JumpUndetectableButton = Instance.new("TextButton")
+JumpUndetectableButton.Size = UDim2.new(0, 280, 0, 30)
+JumpUndetectableButton.Position = UDim2.new(0, 0, 0, 20)
+JumpUndetectableButton.Text = "Jump Undetectable (OFF)"
+JumpUndetectableButton.Font = Enum.Font.SourceSans
+JumpUndetectableButton.FontSize = Enum.FontSize.Size18
+JumpUndetectableButton.TextColor3 = Color3.new(1, 1, 1)
+JumpUndetectableButton.TextStrokeTransparency = 0
+JumpUndetectableButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+JumpUndetectableButton.BackgroundColor3 = Color3.new(0, 0, 0)
+JumpUndetectableButton.BackgroundTransparency = 0.5
+JumpUndetectableButton.Parent = UndetectableSection
+
+local SpeedUndetectableButton = Instance.new("TextButton")
+SpeedUndetectableButton.Size = UDim2.new(0, 280, 0, 30)
+SpeedUndetectableButton.Position = UDim2.new(0, 0, 0, 50)
+SpeedUndetectableButton.Text = "Speed Undetectable (OFF)"
+SpeedUndetectableButton.Font = Enum.Font.SourceSans
+SpeedUndetectableButton.FontSize = Enum.FontSize.Size18
+SpeedUndetectableButton.TextColor3 = Color3.new(1, 1, 1)
+SpeedUndetectableButton.TextStrokeTransparency = 0
+SpeedUndetectableButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+SpeedUndetectableButton.BackgroundColor3 = Color3.new(0, 0, 0)
+SpeedUndetectableButton.BackgroundTransparency = 0.5
+SpeedUndetectableButton.Parent = UndetectableSection
+
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local isEnabled = false -- toggle variable
+local canJump = true -- new variable to track jump availability
+
+-- modified input event with toggle check
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F2 then
+        isEnabled = not isEnabled -- toggle the variable
+        print("Toggle Jump is ".. (isEnabled and "On" or "Off"))
+    elseif input.KeyCode == Enum.KeyCode.Space and isEnabled and canJump then
+        canJump = false -- set canJump to false
+        local character = player.Character
+        if character then
+            character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame + Vector3.new(0, 15, 0)
+        end
+        wait(0.5) -- wait 0.5 seconds
+        canJump = true -- set canJump back to true
+    end
+end)
+
+UserInputService.InputBegan:Connect(onJump)
+
+JumpUndetectableButton.MouseButton1Click:Connect(function()
+    isEnabled = not isEnabled
+    if isEnabled then
+        JumpUndetectableButton.Text = "Jump Undetectable (ON)"
+    else
+        JumpUndetectableButton.Text = "Jump Undetectable (OFF)"
+    end
+end)
+
+local function speed()
+    while speedEnabled do
+        wait()
+        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+
+        if hum and not hum.SeatPart then
+            local movedir = hum.MoveDirection
+            local speeddir = (movedir * 0.01) * 70
+
+            game.Players.LocalPlayer.Character:TranslateBy(speeddir)
+        end
+    end
+end
+
+SpeedUndetectableButton.MouseButton1Click:Connect(function()
+    speedEnabled = not speedEnabled
+    if speedEnabled then
+        SpeedUndetectableButton.Text = "Speed Undetectable (ON)"
+        speed()
+    else
+        SpeedUndetectableButton.Text = "Speed Undetectable (OFF)"
+    end
+end)
+
+
+
+-- Create PVP section
+local PVPSection = Instance.new("Frame")
+PVPSection.Size = UDim2.new(0, 280, 0, 30)
+PVPSection.Position = UDim2.new(0, 10, 0, 230)
+PVPSection.BackgroundColor3 = Color3.new(0, 0, 0)
+PVPSection.BackgroundTransparency = 0.5
+PVPSection.Parent = ButtonContainer
+
+local PVPTitle = Instance.new("TextLabel")
+PVPTitle.Size = UDim2.new(0, 280, 0, 20)
+PVPTitle.Position = UDim2.new(0, 0, 0, 0)
+PVPTitle.Font = Enum.Font.SourceSans
+PVPTitle.FontSize = Enum.FontSize.Size18
+PVPTitle.TextColor3 = Color3.new(1, 1, 1)
+PVPTitle.TextStrokeTransparency = 0
+PVPTitle.TextStrokeColor3 = Color3.new(0, 0, 0)
+PVPTitle.Text = "PVP"
+PVPTitle.Parent = PVPSection
+
+local AdvancedTracerButton = Instance.new("TextButton")
+AdvancedTracerButton.Size = UDim2.new(0, 280, 0, 30)
+AdvancedTracerButton.Position = UDim2.new(0, 0, 0, 20)
+AdvancedTracerButton.Text = "Advanced Tracer (OFF)"
+AdvancedTracerButton.Font = Enum.Font.SourceSans
+AdvancedTracerButton.FontSize = Enum.FontSize.Size18
+AdvancedTracerButton.TextColor3 = Color3.new(1, 1, 1)
+AdvancedTracerButton.TextStrokeTransparency = 0
+AdvancedTracerButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+AdvancedTracerButton.BackgroundColor3 = Color3.new(0, 0, 0)
+AdvancedTracerButton.BackgroundTransparency = 0.5
+AdvancedTracerButton.Parent = PVPSection
+
+
+
+
+local advancedTracerEnabled = false
+local screenGui
+local beams = {}
+
+AdvancedTracerButton.MouseButton1Click:Connect(function()
+    advancedTracerEnabled = not advancedTracerEnabled
+    if advancedTracerEnabled then
+        AdvancedTracerButton.Text = "Advanced Tracer (ON)"
+        
+        -- Create a ScreenGui to display player names
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+
+        -- Create a frame to hold the player names
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 200, 0, 200)
+        frame.Position = UDim2.new(0, 10, 0, 10)
+        frame.BackgroundColor3 = Color3.new(1, 1, 1)
+        frame.Parent = screenGui
+
+        -- Create a list to store the player names and beam colors
+        local playerNames = {}
+
+        -- Function to create a beam for a player
+        local function createBeam(player, beamColor)
+            -- Create a new beam
+            local beam = Instance.new("Beam")
+            beam.Parent = workspace
+            beam.Color = ColorSequence.new(beamColor)
+            beam.Width0 = 0.5
+            beam.Width1 = 0.5
+            
+            -- Set the beam's points
+            local attachment0 = Instance.new("Attachment")
+            attachment0.Parent = game.Players.LocalPlayer.Character.Head
+            local attachment1 = Instance.new("Attachment")
+            attachment1.Parent = player.Character.Head
+            beam.Attachment0 = attachment0
+            beam.Attachment1 = attachment1
+            
+            -- Offset the beam to prevent overlap
+            local offset = (player.Character.Head.Position - game.Players.LocalPlayer.Character.Head.Position).Unit * 0.1
+            attachment1.Position = offset
+            
+            -- Add the beam to the list of beams
+            beams[player.Name] = beam
+            
+            return beam
+        end
+
+        -- Function to update a specific player's beam
+        local function updatePlayerBeam(player)
+            -- Hide all beams
+            for _, beam in pairs(beams) do
+                beam.Enabled = false
+            end
+            
+            -- Show and update the beam for the specified player
+            local beam = beams[player.Name]
+            if not beam then
+                -- Find or generate a beam color for the player
+                local beamColor
+                for _, playerName in pairs(playerNames) do
+                    if playerName[1] == player.Name then
+                        beamColor = playerName[2]
+                        break
+                    end
+                end
+                if not beamColor then
+                    -- Generate a different color
+                    local colors = {
+                        Color3.new(1, 0, 0), -- Red
+                       Color3.new(0, 1, 0), -- Green
+                        Color3.new(0, 0, 1), -- Blue
+                        Color3.new(1, 1, 0), -- Yellow
+                        Color3.new(1, 0, 1), -- Magenta
+                        Color3.new(0, 1, 1), -- Cyan
+                    }
+                    local colorIndex = math.random(1, #colors)
+                    beamColor = colors[colorIndex]
+                    table.insert(playerNames, {player.Name, beamColor})
+                end
+                
+                beam = createBeam(player, beamColor)
+            end
+            
+            beam.Enabled = true
+        end
+
+        -- Function to update the player names and create buttons
+        local function updatePlayerNames()
+            -- Clear the frame
+            for _, child in pairs(frame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child:Destroy()
+                end
+            end
+            
+            -- Get all players in the game
+            local players = game.Players:GetPlayers()
+            
+            -- Loop through each player
+            local yPos = 0
+            for _, player in pairs(players) do
+                -- Check if the player is not the local player
+                if player ~= game.Players.LocalPlayer then
+                    -- Get the player's character
+                    local character = player.Character
+                    
+                    -- Check if the character exists
+                    if character then
+                        -- Create a new button to display the player's name
+                        local button = Instance.new("TextButton")
+                        button.Text = player.Name
+                        button.Font = Enum.Font.SourceSans
+                        button.TextSize = 18
+                        button.Size = UDim2.new(0, 150, 0, 20)
+                        button.Position = UDim2.new(0, 0, 0, yPos)
+                        button.Parent = frame
+                        
+                        -- Connect the button to the function to show and update the player's beam
+                        button.MouseButton1Click:Connect(function()
+                            updatePlayerBeam(player)
+                        end)
+                        
+                        yPos = yPos + 20
+                    end
+                end
+            end
+        end
+
+        -- Initialize the player names and beams
+        updatePlayerNames()
+
+        -- Connect to the PlayerAdded and PlayerRemoving events to update the GUI when players join or leave
+        game.Players.PlayerAdded:Connect(updatePlayerNames)
+        game.Players.PlayerRemoving:Connect(updatePlayerNames)
+    else
+        AdvancedTracerButton.Text = "Advanced Tracer (OFF)"
+        
+        -- Destroy the ScreenGui and its contents
+        screenGui:Destroy()
+        for _, beam in pairs(beams) do
+            beam:Destroy()
+        end
+        beams = {}
+    end
+end)
+
+-- Create close button
+local CloseButton = createButton("Close", function()
+    GUI:Destroy()
+end)
+CloseButton.Position = UDim2.new(0, 50, 1, -50)
+
+-- Create Teleport section
+local TeleportSection = Instance.new("Frame")
+TeleportSection.Size = UDim2.new(0, 280, 0, 150)
+TeleportSection.Position = UDim2.new(0, 0, 0, 50)
+TeleportSection.BackgroundColor3 = Color3.new(0, 0, 0)
+TeleportSection.BackgroundTransparency = 0.5
+TeleportSection.Parent = PVPSection
+
+local TeleportTitle = Instance.new("TextLabel")
+TeleportTitle.Size = UDim2.new(0, 280, 0, 20)
+TeleportTitle.Position = UDim2.new(0, 0, 0, 0)
+TeleportTitle.Font = Enum.Font.SourceSans
+TeleportTitle.FontSize = Enum.FontSize.Size18
+TeleportTitle.TextColor3 = Color3.new(1, 1, 1)
+TeleportTitle.TextStrokeTransparency = 0
+TeleportTitle.TextStrokeColor3 = Color3.new(0, 0, 0)
+TeleportTitle.Text = "Teleport"
+TeleportTitle.Parent = TeleportSection
+
+local TeleportButton1 = Instance.new("TextButton")
+TeleportButton1.Size = UDim2.new(0, 280, 0, 30)
+TeleportButton1.Position = UDim2.new(0, 0, 0, 20)
+TeleportButton1.Text = "TELEPORT TO COORDINATES (CFrame)"
+TeleportButton1.Font = Enum.Font.SourceSans
+TeleportButton1.FontSize = Enum.FontSize.Size18
+TeleportButton1.TextColor3 = Color3.new(1, 1, 1)
+TeleportButton1.TextStrokeTransparency = 0
+TeleportButton1.TextStrokeColor3 = Color3.new(0, 0, 0)
+TeleportButton1.BackgroundColor3 = Color3.new(0, 0, 0)
+TeleportButton1.BackgroundTransparency = 0.5
+TeleportButton1.Parent = TeleportSection
+
+TeleportButton1.MouseButton1Click:Connect(function()
+    local gui = Instance.new("ScreenGui")
+    local frame = Instance.new("Frame")
+    local textLabel = Instance.new("TextLabel")
+    local textBox = Instance.new("TextBox")
+    local submitButton = Instance.new("TextButton")
+    local saveButton = Instance.new("TextButton")
+    local saveCurrentButton = Instance.new("TextButton")
+    local closeButton = Instance.new("TextButton")
+    local minimizeButton = Instance.new("TextButton")
+    local listFrame = Instance.new("Frame")
+    local listUI = Instance.new("UIListLayout")
+    local savedCoordinates = {}
+
+    -- Create the GUI
+    gui.Parent = game.Players.LocalPlayer.PlayerGui
+    gui.ResetOnSpawn = false
+
+    frame.Parent = gui
+    frame.Size = UDim2.new(0, 200, 0, 120)
+    frame.Position = UDim2.new(0, 100, 0, 100)
+
+    -- Create the text label and text box
+    textLabel.Parent = frame
+    textLabel.Text = "Enter coordinates (x, y, z):"
+    textLabel.Size = UDim2.new(0, 200, 0, 20)
+    textLabel.Position = UDim2.new(0, 0, 0, 0)
+
+    textBox.Parent = frame
+    textBox.Size = UDim2.new(0, 200, 0, 20)
+    textBox.Position = UDim2.new(0, 0, 0, 20)
+
+    -- Create the submit button
+    submitButton.Parent = frame
+    submitButton.Text = "Submit"
+    submitButton.Size = UDim2.new(0, 200, 0, 20)
+    submitButton.Position = UDim2.new(0, 0, 0, 40)
+
+    -- Create the save button
+    saveButton.Parent = frame
+    saveButton.Text = "Save"
+    saveButton.Size = UDim2.new(0, 200, 0, 20)
+    saveButton.Position = UDim2.new(0, 0, 0, 60)
+
+    -- Create the save current button
+    saveCurrentButton.Parent = frame
+    saveCurrentButton.Text = "Save Current"
+    saveCurrentButton.Size = UDim2.new(0, 200, 0, 20)
+    saveCurrentButton.Position = UDim2.new(0, 0, 0, 80)
+
+    -- Create the close button
+    closeButton.Parent = frame
+    closeButton.Text = "X"
+    closeButton.Size = UDim2.new(0, 20, 0, 20)
+    closeButton.Position = UDim2.new(1, -20, 0, 0)
+    closeButton.MouseButton1Click:Connect(function()
+        gui:Destroy()
+    end)
+
+    -- Create the minimize button
+    minimizeButton.Parent = frame
+    minimizeButton.Text = "_"
+    minimizeButton.Size = UDim2.new(0, 20, 0, 20)
+    minimizeButton.Position = UDim2.new(1, -40, 0, 0)
+    minimizeButton.MouseButton1Click:Connect(function()
+        if frame.Size.Y.Offset == 120 then
+            frame.Size = UDim2.new(0, 200, 0, 20)
+            textLabel.Visible = false
+            textBox.Visible = false
+            submitButton.Visible = false
+            saveButton.Visible = false
+            saveCurrentButton.Visible = false
+            listFrame.Visible = false
+        else
+            frame.Size = UDim2.new(0, 200, 0, 120)
+            textLabel.Visible = true
+            textBox.Visible = true
+            submitButton.Visible = true
+            saveButton.Visible = true
+            saveCurrentButton.Visible = true
+            listFrame.Visible = true
+        end
+    end)
+
+    -- Create the list frame
+    listFrame.Parent = frame
+    listFrame.Size = UDim2.new(0, 200, 0, 100)
+    listFrame.Position = UDim2.new(0, 0, 1, 0)
+    listUI.Parent = listFrame
+    listUI.SortOrder = Enum.SortOrder.LayoutOrder
+
+    -- Teleport player to coordinates when submit button is clicked
+    submitButton.MouseButton1Click:Connect(function()
+        local coordinates = textBox.Text
+        local x, y, z = coordinates:match("([^,]+),([^,]+),([^,]+)")
+        if x and y and z then
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            if character then
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    local targetCFrame = CFrame.new(tonumber(x), tonumber(y), tonumber(z))
+                    humanoidRootPart.CFrame = targetCFrame
+                end
+            end
+        end
+    end)
+
+    -- Save coordinates when save button is clicked
+    saveButton.MouseButton1Click:Connect(function()
+        local coordinates = textBox.Text
+        local x, y, z = coordinates:match("([^,]+),([^,]+),([^,]+)")
+        if x and y and z then
+            local listButton = Instance.new("TextButton")
+            listButton.Parent = listFrame
+            listButton.Text = coordinates
+            listButton.Size = UDim2.new(0, 180, 0, 20)
+
+            local deleteButton = Instance.new("TextButton")
+            deleteButton.Parent = listButton
+            deleteButton.Text = "X"
+            deleteButton.Size = UDim2.new(0, 20, 0, 20)
+            deleteButton.Position = UDim2.new(1, -20, 0, 0)
+
+            local teleportButton = Instance.new("TextButton")
+            teleportButton.Parent = listButton
+            teleportButton.Text = "Teleport"
+            teleportButton.Size = UDim2.new(0, 60, 0, 20)
+            teleportButton.Position = UDim2.new(0, 0, 0, 0)
+
+            teleportButton.MouseButton1Click:Connect(function()
+                local player = game.Players.LocalPlayer
+                local character = player.Character
+                if character then
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        local targetCFrame = CFrame.new(tonumber(x), tonumber(y), tonumber(z))
+                        humanoidRootPart.CFrame = targetCFrame
+                    end
+                end
+            end)
+
+            deleteButton.MouseButton1Click:Connect(function()
+                listButton:Destroy()
+            end)
+        end
+    end)
+
+    -- Save current coordinates when save current button is clicked
+    saveCurrentButton.MouseButton1Click:Connect(function()
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                local position = humanoidRootPart.Position
+                local x = math.floor(position.X * 100) / 100 -- round to 2 decimal places
+                local y = math.floor(position.Y * 100) / 100 -- round to 2 decimal places
+                local z = math.floor(position.Z * 100) / 100 -- round to 2 decimal places
+                local listButton = Instance.new("TextButton")
+                listButton.Parent = listFrame
+                listButton.Text = x.. ", ".. y.. ", ".. z
+                listButton.Size = UDim2.new(0, 180, 0, 20)
+
+                local deleteButton = Instance.new("TextButton")
+                deleteButton.Parent = listButton
+                deleteButton.Text = "X"
+                deleteButton.Size = UDim2.new(0, 20, 0, 20)
+                deleteButton.Position = UDim2.new(1, -20, 0, 0)
+
+                local teleportButton = Instance.new("TextButton")
+                teleportButton.Parent = listButton
+                teleportButton.Text = "Teleport"
+                teleportButton.Size = UDim2.new(0, 60, 0, 20)
+                teleportButton.Position = UDim2.new(0, 0, 0, 0)
+
+                teleportButton.MouseButton1Click:Connect(function()
+                    local player = game.Players.LocalPlayer
+                    local character = player.Character
+                    if character then
+                        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                        if humanoidRootPart then
+                            local targetCFrame = CFrame.new(position.X, position.Y, position.Z)
+                            humanoidRootPart.CFrame = targetCFrame
+                        end
+                    end
+                end)
+
+                deleteButton.MouseButton1Click:Connect(function()
+                    listButton:Destroy()
+                end)
+            end
+        end
+    end)
+
+    -- Make the frame draggable
+    local userInputService = game:GetService("UserInputService")
+    local dragging = false
+    local dragStart
+    local startPos
+
+    local function updateInput(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                updateInput(input)
+            end
+        end
+    end)
+
+    frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    -- Print current coordinates when 'B' key is pressed
+    local userInputService = game:GetService("UserInputService")
+
+    userInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.B then
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            if character then
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    local position = humanoidRootPart.Position
+                    print("Current coordinates: ".. position.X.. ", ".. position.Y.. ", ".. position.Z)
+                end
+            end
+        end
+    end)
+end)
