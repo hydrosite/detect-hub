@@ -589,6 +589,69 @@ task.spawn(C_10);
 -- StarterGui.ScreenGui.Frame.AimBot.LocalScript
 local function C_13()
 local script = G2L["13"];
+	local player = game.Players.LocalPlayer
+	local camera = game.Workspace.CurrentCamera
+	local RunService = game:GetService("RunService")
+	
+	local button = script.Parent -- Reference to the button itself
+	local smoothingFactor = 0.1 -- Adjust this value for smoother or snappier rotations
+	local radius = 500 -- Set the radius within which the player will look at others
+	
+	local rotationEnabled = false -- Initially, rotation is disabled
+	
+	local function getNearestPlayer()
+		local nearestPlayer = nil
+		local nearestDistance = math.huge
+	
+		for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+			if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
+				if distance < nearestDistance and distance <= radius then
+					nearestDistance = distance
+					nearestPlayer = otherPlayer
+				end
+			end
+		end
+	
+		return nearestPlayer
+	end
+	
+	local function rotateTowardsPlayer()
+		local nearestPlayer = getNearestPlayer()
+	
+		if nearestPlayer then
+			local targetPosition = nearestPlayer.Character.HumanoidRootPart.Position
+			local characterPosition = player.Character.HumanoidRootPart.Position
+	
+			-- Calculate the direction to look at
+			local lookAtCFrame = CFrame.new(characterPosition, targetPosition)
+	
+			-- Smoothly interpolate the camera's CFrame
+			camera.CFrame = camera.CFrame:Lerp(lookAtCFrame, smoothingFactor)
+	
+			-- Smoothly rotate the player's character towards the target
+			local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				humanoid.RootPart.CFrame = humanoid.RootPart.CFrame:Lerp(lookAtCFrame, smoothingFactor)
+			end
+		end
+	end
+	
+	local function onRenderStep()
+		if rotationEnabled then
+			rotateTowardsPlayer()
+		end
+	end
+	
+	button.MouseButton1Click:Connect(function()
+		rotationEnabled = not rotationEnabled -- Toggle rotation on button click
+	end)
+	
+	RunService.RenderStepped:Connect(onRenderStep)
+	
+	player.CharacterAdded:Connect(function()
+		rotationEnabled = false -- Disable rotation when respawning
+	end)
 	
 end;
 task.spawn(C_13);
