@@ -1,6 +1,13 @@
+--[=[
+ d888b  db    db d888888b      .d888b.      db      db    db  .d8b.  
+88' Y8b 88    88   `88'        VP  `8D      88      88    88 d8' `8b 
+88      88    88    88            odD'      88      88    88 88ooo88 
+88  ooo 88    88    88          .88'        88      88    88 88~~~88 
+88. ~8~ 88b  d88   .88.        j88.         88booo. 88b  d88 88   88    @uniquadev
+ Y888P  ~Y8888P' Y888888P      888888D      Y88888P ~Y8888P' YP   YP  CONVERTER 
+]=]
 
-
--- Instances: 49 | Scripts: 10 | Modules: 0 | Tags: 0
+-- Instances: 52 | Scripts: 11 | Modules: 0 | Tags: 0
 local G2L = {};
 
 -- StarterGui.ScreenGui
@@ -456,6 +463,30 @@ G2L["30"] = Instance.new("UICorner", G2L["2f"]);
 
 -- StarterGui.ScreenGui.Frame.X.LocalScript
 G2L["31"] = Instance.new("LocalScript", G2L["2f"]);
+
+
+
+-- StarterGui.ScreenGui.Frame.Fly
+G2L["32"] = Instance.new("TextButton", G2L["2"]);
+G2L["32"]["BorderSizePixel"] = 0;
+G2L["32"]["TextSize"] = 14;
+G2L["32"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["32"]["BackgroundColor3"] = Color3.fromRGB(104, 0, 3);
+G2L["32"]["FontFace"] = Font.new([[rbxasset://fonts/families/Creepster.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["32"]["Size"] = UDim2.new(0, 59, 0, 25);
+G2L["32"]["Name"] = [[Fly]];
+G2L["32"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["32"]["Text"] = [[Fly]];
+G2L["32"]["Position"] = UDim2.new(0.02962, 0, 0.54854, 0);
+
+
+-- StarterGui.ScreenGui.Frame.Fly.UICorner
+G2L["33"] = Instance.new("UICorner", G2L["32"]);
+
+
+
+-- StarterGui.ScreenGui.Frame.Fly.LocalScript
+G2L["34"] = Instance.new("LocalScript", G2L["32"]);
 
 
 
@@ -1135,5 +1166,90 @@ local script = G2L["31"];
 	
 end;
 task.spawn(C_31);
+-- StarterGui.ScreenGui.Frame.Fly.LocalScript
+local function C_34()
+local script = G2L["34"];
+	local player = game.Players.LocalPlayer
+	local UserInputService = game:GetService("UserInputService")
+	local RunService = game:GetService("RunService")
+	
+	local flying = false
+	local speed = 50
+	local friction = 0.5 -- Friction value (lower is more friction)
+	local velocity = Vector3.new(0, 0, 0)
+	
+	-- Reference to the button
+	local button = script.Parent
+	
+	local function setupCharacter(character)
+		local humanoid = character:WaitForChild("Humanoid")
+		local rootPart = character:WaitForChild("HumanoidRootPart")
+	
+		humanoid.PlatformStand = flying -- Set initial flying state
+	
+		if flying then
+			local bodyGyro = Instance.new("BodyGyro", rootPart)
+			local bodyVelocity = Instance.new("BodyVelocity", rootPart)
+			bodyGyro.P = 9e4
+			bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+			bodyGyro.CFrame = rootPart.CFrame
+			bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+			bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	
+			-- Control loop
+			local connection
+			connection = RunService.RenderStepped:Connect(function()
+				if not flying then
+					connection:Disconnect()
+					bodyGyro:Destroy()
+					bodyVelocity:Destroy()
+					return
+				end
+	
+				bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+	
+				local moveDirection = Vector3.new(0, 0, 0)
+				if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + workspace.CurrentCamera.CFrame.LookVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - workspace.CurrentCamera.CFrame.LookVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - workspace.CurrentCamera.CFrame.RightVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + workspace.CurrentCamera.CFrame.RightVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
+				if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
+	
+				if moveDirection.Magnitude > 0 then
+					velocity = (velocity + (moveDirection.Unit * speed)) * (1 - friction)
+				else
+					velocity = velocity * (1 - friction)
+				end
+	
+				bodyVelocity.Velocity = velocity
+			end)
+		end
+	
+		-- Reset platform stand when the character respawns
+		player.CharacterAdded:Connect(function(newCharacter)
+			setupCharacter(newCharacter)
+		end)
+	end
+	
+	local function toggleFly()
+		flying = not flying
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid.PlatformStand = flying
+	
+		if flying then
+			setupCharacter(character)
+		end
+	end
+	
+	-- Toggle fly on button click
+	button.MouseButton1Click:Connect(toggleFly)
+	
+	-- Setup for the initial character
+	setupCharacter(player.Character or player.CharacterAdded:Wait())
+	
+end;
+task.spawn(C_34);
 
 return G2L["1"], require;
