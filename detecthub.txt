@@ -7,7 +7,7 @@
  Y888P  ~Y8888P' Y888888P      888888D      Y88888P ~Y8888P' YP   YP  CONVERTER 
 ]=]
 
--- Instances: 52 | Scripts: 11 | Modules: 0 | Tags: 0
+-- Instances: 55 | Scripts: 12 | Modules: 0 | Tags: 0
 local G2L = {};
 
 -- StarterGui.ScreenGui
@@ -81,23 +81,24 @@ G2L["9"] = Instance.new("LocalScript", G2L["2"]);
 
 
 
--- StarterGui.ScreenGui.Frame.Frame
+-- StarterGui.ScreenGui.Frame.Outline
 G2L["a"] = Instance.new("Frame", G2L["2"]);
 G2L["a"]["BorderSizePixel"] = 0;
 G2L["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
 G2L["a"]["Size"] = UDim2.new(0, 343, 0, 468);
 G2L["a"]["Position"] = UDim2.new(0, 0, -0, 0);
 G2L["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["a"]["Name"] = [[Outline]];
 G2L["a"]["BackgroundTransparency"] = 1;
 
 
--- StarterGui.ScreenGui.Frame.Frame.UIStroke
+-- StarterGui.ScreenGui.Frame.Outline.UIStroke
 G2L["b"] = Instance.new("UIStroke", G2L["a"]);
 G2L["b"]["Thickness"] = 5;
 G2L["b"]["Color"] = Color3.fromRGB(135, 0, 0);
 
 
--- StarterGui.ScreenGui.Frame.Frame.UICorner
+-- StarterGui.ScreenGui.Frame.Outline.UICorner
 G2L["c"] = Instance.new("UICorner", G2L["a"]);
 G2L["c"]["CornerRadius"] = UDim.new(0, 25);
 
@@ -487,6 +488,30 @@ G2L["33"] = Instance.new("UICorner", G2L["32"]);
 
 -- StarterGui.ScreenGui.Frame.Fly.LocalScript
 G2L["34"] = Instance.new("LocalScript", G2L["32"]);
+
+
+
+-- StarterGui.ScreenGui.Frame.ESP button
+G2L["35"] = Instance.new("TextButton", G2L["2"]);
+G2L["35"]["BorderSizePixel"] = 0;
+G2L["35"]["TextSize"] = 14;
+G2L["35"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["35"]["BackgroundColor3"] = Color3.fromRGB(104, 0, 3);
+G2L["35"]["FontFace"] = Font.new([[rbxasset://fonts/families/Creepster.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["35"]["Size"] = UDim2.new(0, 59, 0, 25);
+G2L["35"]["Name"] = [[ESP button]];
+G2L["35"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["35"]["Text"] = [[ESP]];
+G2L["35"]["Position"] = UDim2.new(0.35811, 0, 0.54854, 0);
+
+
+-- StarterGui.ScreenGui.Frame.ESP button.UICorner
+G2L["36"] = Instance.new("UICorner", G2L["35"]);
+
+
+
+-- StarterGui.ScreenGui.Frame.ESP button.LocalScript
+G2L["37"] = Instance.new("LocalScript", G2L["35"]);
 
 
 
@@ -1251,5 +1276,135 @@ local script = G2L["34"];
 	
 end;
 task.spawn(C_34);
+-- StarterGui.ScreenGui.Frame.ESP button.LocalScript
+local function C_37()
+local script = G2L["37"];
+	local player = game.Players.LocalPlayer
+	local camera = game.Workspace.CurrentCamera
+	local boxes = {} -- Table to store boxes for each player
+	local scriptEnabled = false -- Variable to toggle script on/off
+	
+	-- Get the button from the GUI (update this to match your structure)
+	local button = player.PlayerGui:WaitForChild("ScreenGui"):WaitForChild("Frame"):WaitForChild("ESP button")
+	
+	-- Create a function to determine if a player is behind a wall
+	local function isBehindWall(playerHead)
+		local origin = camera.CFrame.Position
+		local direction = (playerHead.Position - origin).unit * (playerHead.Position - origin).Magnitude
+	
+		-- Raycast to check for obstructions between the camera and the player's head
+		local raycastParams = RaycastParams.new()
+		raycastParams.FilterDescendantsInstances = {player.Character} -- Ignore the player's own character
+		raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+	
+		local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+	
+		return raycastResult ~= nil -- Return true if something is hit (i.e., player is behind a wall)
+	end
+	
+	-- Create a function to calculate the size of the box based on distance
+	local function getBoxSize(distance, behindWall)
+		if behindWall then
+			return Vector3.new(5, 5, 5) -- Larger size when behind walls
+		else
+			-- Make the box larger as the distance increases
+			local sizeFactor = math.clamp(distance / 5, 2, 30) -- Clamps the size between 2 and 30
+			return Vector3.new(sizeFactor, sizeFactor, sizeFactor)
+		end
+	end
+	
+	-- Create a function to draw a box around a player's head
+	local function drawBox(player)
+		-- Get the player's character and head
+		local character = player.Character
+		local head = character and character:FindFirstChild("Head")
+	
+		-- Check if the player has a character and head
+		if character and head then
+			-- Get the box from the boxes table, or create one if it doesn't exist
+			local box = boxes[player.Name]
+			if not box then
+				box = Instance.new("BoxHandleAdornment")
+				box.Adornee = head
+				box.Color3 = Color3.new(1, 0, 0) -- Red color for visibility
+				box.Transparency = 0.5
+				box.ZIndex = 1
+				box.AlwaysOnTop = true -- Ensures the box is always on top even through walls
+				box.Parent = camera
+				boxes[player.Name] = box -- Store the box in the table
+			else
+				-- If box already exists, update the adornee in case the character respawned
+				box.Adornee = head
+			end
+	
+			-- Calculate the distance between the camera and the player's head
+			local distance = (camera.CFrame.Position - head.Position).Magnitude
+	
+			-- Check if the player is behind a wall
+			local behindWall = isBehindWall(head)
+	
+			-- Adjust the box size based on the distance and whether they're behind a wall
+			box.Size = getBoxSize(distance, behindWall)
+		end
+	end
+	
+	-- Create a loop to continuously update boxes around players' heads
+	local function updateBoxes()
+		while scriptEnabled do
+			-- Loop through all players in the game
+			for _, player in pairs(game.Players:GetPlayers()) do
+				-- Check if the player is not the local player
+				if player ~= game.Players.LocalPlayer then
+					-- Draw or update a box around the player's head
+					drawBox(player)
+				end
+			end
+			wait(0.1)
+		end
+	end
+	
+	-- Button click handler
+	button.MouseButton1Click:Connect(function()
+		scriptEnabled = not scriptEnabled -- Toggle the script on/off
+		print("Script Enabled:", scriptEnabled) -- Debug print to check the toggle
+	
+		-- Start the loop if the script is enabled
+		if scriptEnabled then
+			updateBoxes()
+		else
+			-- Hide all boxes if the script is turned off
+			for _, box in pairs(boxes) do
+				box:Destroy()
+			end
+			boxes = {}
+		end
+	end)
+	
+	-- Connect the CharacterAdded event to reapply the box when the character respawns
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			-- Add listener for character respawn to redraw boxes
+			player.CharacterAdded:Connect(function()
+				if scriptEnabled then
+					drawBox(player)
+				end
+			end)
+		end
+	end
+	
+	-- Listen for new players joining and handle their CharacterAdded event
+	game.Players.PlayerAdded:Connect(function(player)
+		if player ~= game.Players.LocalPlayer then
+			-- Add listener for character respawn to redraw boxes
+			player.CharacterAdded:Connect(function()
+				if scriptEnabled then
+					drawBox(player)
+				end
+			end)
+		end
+	end)
+	
+end;
+task.spawn(C_37);
 
 return G2L["1"], require;
