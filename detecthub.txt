@@ -7,7 +7,7 @@
  Y888P  ~Y8888P' Y888888P      888888D      Y88888P ~Y8888P' YP   YP  CONVERTER 
 ]=]
 
--- Instances: 55 | Scripts: 12 | Modules: 0 | Tags: 0
+-- Instances: 58 | Scripts: 13 | Modules: 0 | Tags: 0
 local G2L = {};
 
 -- StarterGui.ScreenGui
@@ -512,6 +512,30 @@ G2L["36"] = Instance.new("UICorner", G2L["35"]);
 
 -- StarterGui.ScreenGui.Frame.ESP button.LocalScript
 G2L["37"] = Instance.new("LocalScript", G2L["35"]);
+
+
+
+-- StarterGui.ScreenGui.Frame.Fly Undetectable
+G2L["38"] = Instance.new("TextButton", G2L["2"]);
+G2L["38"]["BorderSizePixel"] = 0;
+G2L["38"]["TextSize"] = 14;
+G2L["38"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["38"]["BackgroundColor3"] = Color3.fromRGB(104, 0, 3);
+G2L["38"]["FontFace"] = Font.new([[rbxasset://fonts/families/Creepster.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["38"]["Size"] = UDim2.new(0, 73, 0, 24);
+G2L["38"]["Name"] = [[Fly Undetectable]];
+G2L["38"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["38"]["Text"] = [[Fly]];
+G2L["38"]["Position"] = UDim2.new(0.6459, 0, 0.23477, 0);
+
+
+-- StarterGui.ScreenGui.Frame.Fly Undetectable.UICorner
+G2L["39"] = Instance.new("UICorner", G2L["38"]);
+
+
+
+-- StarterGui.ScreenGui.Frame.Fly Undetectable.LocalScript
+G2L["3a"] = Instance.new("LocalScript", G2L["38"]);
 
 
 
@@ -1406,5 +1430,81 @@ local script = G2L["37"];
 	
 end;
 task.spawn(C_37);
+-- StarterGui.ScreenGui.Frame.Fly Undetectable.LocalScript
+local function C_3a()
+local script = G2L["3a"];
+	local player = game.Players.LocalPlayer
+	local UserInputService = game:GetService("UserInputService")
+	local RunService = game:GetService("RunService")
+	
+	local flying = false
+	local speed = 2 -- Reduced speed for slower movement
+	local teleportInterval = 0.2 -- Teleport every 0.2 seconds
+	local teleportPosition = Vector3.new(0, 0, 0) -- Placeholder for teleport position
+	
+	-- Function to set up character for flying
+	local function setupCharacter(character)
+		local humanoid = character:WaitForChild("Humanoid")
+		local rootPart = character:WaitForChild("HumanoidRootPart")
+	
+		humanoid.PlatformStand = flying -- Set initial flying state
+	
+		-- Control loop for teleportation
+		local connection
+		connection = RunService.RenderStepped:Connect(function()
+			if not flying then
+				connection:Disconnect()
+				return
+			end
+	
+			-- Calculate the teleport position based on camera direction
+			local cameraCFrame = workspace.CurrentCamera.CFrame
+			local moveDirection = Vector3.new(0, 0, 0)
+	
+			-- Collect movement input
+			if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + cameraCFrame.LookVector end
+			if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - cameraCFrame.LookVector end
+			if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - cameraCFrame.RightVector end
+			if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + cameraCFrame.RightVector end
+			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
+			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
+	
+			-- Calculate new teleport position only if there is movement input
+			if moveDirection.Magnitude > 0 then
+				teleportPosition = rootPart.Position + (moveDirection.Unit * speed) -- Teleport position based on input direction
+				rootPart.CFrame = CFrame.new(teleportPosition) -- Smooth teleportation
+			end
+	
+			-- Prevent falling by setting the velocity directly
+			rootPart.Velocity = Vector3.new(rootPart.Velocity.X, 0, rootPart.Velocity.Z) -- Keep vertical velocity to 0
+	
+			-- Delay for the teleport interval
+			wait(teleportInterval)
+		end)
+	end
+	
+	-- Function to toggle flying
+	local function toggleFly()
+		flying = not flying
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid.PlatformStand = flying
+	
+		if flying then
+			setupCharacter(character)
+		end
+	end
+	
+	-- Assuming your button is named 'FlyButton' in the ScreenGui
+	local flyButton = player.PlayerGui.ScreenGui.Frame:WaitForChild("Fly Undetectable")
+	
+	-- Toggle fly on button click
+	flyButton.MouseButton1Click:Connect(toggleFly)
+	
+	-- Setup for the initial character
+	setupCharacter(player.Character or player.CharacterAdded:Wait())
+	
+end;
+task.spawn(C_3a);
 
 return G2L["1"], require;
