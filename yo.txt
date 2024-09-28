@@ -1,0 +1,573 @@
+local GUI = Instance.new("ScreenGui")
+            GUI.Parent = game.Players.LocalPlayer.PlayerGui
+
+            local MainFrame = Instance.new("Frame")
+            MainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+            MainFrame.BorderSizePixel = 0
+            MainFrame.Size = UDim2.new(0, 250, 0, 300)
+            MainFrame.Position = UDim2.new(0.5, -125, 0.4, -150)
+            MainFrame.Parent = GUI
+
+            local TitleBar = Instance.new("Frame")
+            TitleBar.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+            TitleBar.BorderSizePixel = 0
+            TitleBar.Size = UDim2.new(0, 250, 0, 30)
+            TitleBar.Position = UDim2.new(0, 0, 0, 0)
+            TitleBar.Parent = MainFrame
+
+            local TitleLabel = Instance.new("TextLabel")
+            TitleLabel.Font = Enum.Font.SourceSans
+            TitleLabel.FontSize = Enum.FontSize.Size24
+            TitleLabel.Text = "Hydra-X"
+            TitleLabel.TextColor3 = Color3.new(1, 1, 1)
+            TitleLabel.Size = UDim2.new(0, 200, 0, 30)
+            TitleLabel.Position = UDim2.new(0.5, -100, 0, 0)
+            TitleLabel.BackgroundTransparency = 1
+            TitleLabel.Parent = TitleBar
+
+            local ButtonFrameLeft = Instance.new("Frame")
+            ButtonFrameLeft.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+            ButtonFrameLeft.BorderSizePixel = 0
+            ButtonFrameLeft.Size = UDim2.new(0, 120, 0, 250)
+            ButtonFrameLeft.Position = UDim2.new(0, 10, 0, 40)
+            ButtonFrameLeft.Parent = MainFrame
+
+            local ButtonFrameRight = Instance.new("Frame")
+            ButtonFrameRight.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+            ButtonFrameRight.BorderSizePixel = 0
+            ButtonFrameRight.Size = UDim2.new(0, 120, 0, 250)
+            ButtonFrameRight.Position = UDim2.new(1, -130, 0, 40)
+            ButtonFrameRight.Parent = MainFrame
+
+            local buttonsLeft = {}
+            local buttonsRight = {}
+
+            local function createButtonLeft(text, callback)
+                local button = Instance.new("TextButton")
+                button.Text = text
+                button.Size = UDim2.new(0, 100, 0, 25)
+                button.Font = Enum.Font.SourceSans
+                button.FontSize = Enum.FontSize.Size14
+                button.TextColor3 = Color3.new(1, 1, 1)
+                button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+                button.BorderSizePixel = 0
+                button.Parent = ButtonFrameLeft
+                table.insert(buttonsLeft, button)
+                button.MouseButton1Click:Connect(callback)
+            end
+
+            local function createButtonRight(text, callback)
+                local button = Instance.new("TextButton")
+                button.Text = text
+                button.Size = UDim2.new(0, 100, 0, 25)
+                button.Font = Enum.Font.SourceSans
+                button.FontSize = Enum.FontSize.Size14
+                button.TextColor3 = Color3.new(1, 1, 1)
+                button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+                button.BorderSizePixel = 0
+                button.Parent = ButtonFrameRight
+                table.insert(buttonsRight, button)
+                button.MouseButton1Click:Connect(callback)
+            end
+
+            createButtonLeft("WalkSpeed", function()
+local SpeedhackGUI = Instance.new("ScreenGui")
+SpeedhackGUI.Name = "SpeedhackGUI"
+SpeedhackGUI.Parent = game.Players.LocalPlayer.PlayerGui
+
+local SpeedhackButton = Instance.new("TextButton")
+SpeedhackButton.Name = "SpeedhackButton"
+SpeedhackButton.Text = "Speedhack: Off"
+SpeedhackButton.Size = UDim2.new(0, 100, 0, 30)
+SpeedhackButton.Position = UDim2.new(0, 10, 0, 50)
+SpeedhackButton.Parent = SpeedhackGUI
+
+-- Make the GUI movable
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    SpeedhackGUI.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+SpeedhackButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = SpeedhackGUI.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Speedhack variables
+local toggle = false
+
+-- Function to toggle speedhack
+local function toggleSpeedhack()
+    toggle = not toggle
+    SpeedhackButton.Text = "Speedhack: " .. (toggle and "On" or "Off")
+end
+
+-- Connect the toggle function to the button click event
+SpeedhackButton.Activated:Connect(toggleSpeedhack)
+
+-- Connect the toggle function to the 'G' key press event
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.G then
+        toggleSpeedhack()
+    end
+end)
+
+-- Main loop
+game:GetService("RunService").Heartbeat:Connect(function(deltatime)
+    if toggle then
+        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+
+        if hum and not hum.SeatPart then
+            local movedir = hum.MoveDirection
+            local speeddir = (movedir * deltatime) * 19
+
+            game.Players.LocalPlayer.Character:TranslateBy(speeddir)
+        end
+    end
+end)
+            end)
+
+            createButtonLeft("Teleport Around Target", function()
+            local character = game.Players.LocalPlayer.Character
+local humanoid = character:WaitForChild("Humanoid")
+
+local platform = Instance.new("Part")
+platform.Anchored = true
+platform.Size = Vector3.new(5, 1, 5)
+platform.Transparency = 1
+platform.Position = Vector3.new(0, -100, 0)
+platform.Parent = game.Workspace
+
+local function getNearestPlayer()
+    local nearestPlayer = nil
+    local nearestDistance = 45
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character then
+            local distance = (player.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).magnitude
+            if distance < nearestDistance then
+                nearestDistance = distance
+                nearestPlayer = player
+            end
+        end
+    end
+    return nearestPlayer
+end
+
+local function teleportAroundNearestPlayer(nearestPlayer)
+    if nearestPlayer and nearestPlayer.Character then
+        local radius = 2 + math.random() * 2
+        local angle = math.random() * 2 * math.pi
+        local height = math.random() * 12 - 2
+        local newX = nearestPlayer.Character.HumanoidRootPart.Position.X + math.cos(angle) * radius
+        local newY = nearestPlayer.Character.HumanoidRootPart.Position.Y + height
+        local newZ = nearestPlayer.Character.HumanoidRootPart.Position.Z + math.sin(angle) * radius
+        character.HumanoidRootPart.CFrame = CFrame.new(newX, newY, newZ)
+        platform.Position = Vector3.new(newX, newY - 2, newZ)
+    end
+end
+
+local playerGui = game.Players.LocalPlayer.PlayerGui
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "TeleportToggle"
+toggleGui.Parent = playerGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Text = "Teleport: OFF"
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(0, 10, 0, 130)
+toggleButton.Parent = toggleGui
+
+local toggle = false
+local targetPlayer = nil
+
+local function teleportLoop()
+    if toggle then
+        if targetPlayer and targetPlayer.Character then
+            teleportAroundNearestPlayer(targetPlayer)
+        else
+            targetPlayer = getNearestPlayer()
+        end
+        game:GetService("RunService").RenderStepped:wait()
+        teleportLoop()
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+    toggle = not toggle
+    if toggle then
+        toggleButton.Text = "Teleport: ON"
+        targetPlayer = getNearestPlayer()
+        teleportLoop()
+    else
+        toggleButton.Text = "Teleport: OFF"
+        platform.Position = Vector3.new(0, -100, 0)
+    end
+end)
+            end)
+
+            createButtonLeft("Inf Stamina", function()
+local function disableLocalScript(scriptName)
+
+    local character = game.Players.LocalPlayer.Character
+
+
+    for _, script in pairs(character:GetDescendants()) do
+        if script:IsA("LocalScript") and script.Name == scriptName then
+
+            script.Disabled = true
+            print("Disabled LocalScript: ".. scriptName)
+            return
+        end
+    end
+    print("LocalScript not found: ".. scriptName)
+end
+
+
+local scriptName = "stamina"
+
+
+disableLocalScript(scriptName)
+            end)
+
+            createButtonLeft("Anti FallDamage", function()
+                 
+local function disableLocalScript(scriptName)
+    
+    local character = game.Players.LocalPlayer.Character
+
+    
+    for _, script in pairs(character:GetDescendants()) do
+        if script:IsA("LocalScript") and script.Name == scriptName then
+            
+            script.Disabled = true
+            print("Disabled LocalScript: ".. scriptName)
+            return
+        end
+    end
+    print("LocalScript not found: ".. scriptName)
+end
+
+
+local scriptName = "fallDamage"
+
+
+disableLocalScript(scriptName)
+            end)
+
+            createButtonLeft("Kill Aura", function()
+local players = game:GetService("Players")
+local myCharacter = game:GetService("Players").LocalPlayer.Character
+local nearestPlayer = nil
+local nearestDistance = 40
+local repeatAttack = false
+
+local AutoMeleeGUI = Instance.new("ScreenGui")
+AutoMeleeGUI.Name = "AutoMeleeGUI"
+AutoMeleeGUI.Parent = game.Players.LocalPlayer.PlayerGui
+
+local AutoMeleeFrame = Instance.new("Frame")
+AutoMeleeFrame.Name = "AutoMeleeFrame"
+AutoMeleeFrame.Size = UDim2.new(0, 100, 0, 30)
+AutoMeleeFrame.Position = UDim2.new(0, 10, 0, 90)
+AutoMeleeFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+AutoMeleeFrame.BackgroundTransparency = 0.5
+AutoMeleeFrame.Parent = AutoMeleeGUI
+
+local AutoMeleeButton = Instance.new("TextButton")
+AutoMeleeButton.Name = "AutoMeleeButton"
+AutoMeleeButton.Text = "Kill Aura: Off"
+AutoMeleeButton.Size = UDim2.new(1, 0, 1, 0)
+AutoMeleeButton.Font = Enum.Font.SourceSans
+AutoMeleeButton.FontSize = Enum.FontSize.Size14
+AutoMeleeButton.TextColor3 = Color3.new(1, 1, 1)
+AutoMeleeButton.Parent = AutoMeleeFrame
+
+
+local AutoMeleeEnabled = false
+
+
+local function findNearestPlayer()
+    nearestPlayer = nil
+    nearestDistance = 40
+    for _, player in pairs(players:GetPlayers()) do
+        if player ~= game:GetService("Players").LocalPlayer then
+            local character = player.Character
+            if character then
+                local distance = (myCharacter.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                if distance <= nearestDistance then
+                    nearestPlayer = player
+                    nearestDistance = distance
+                end
+            end
+        end
+    end
+end
+
+local function attackNearestPlayer()
+    if nearestPlayer then
+        local args = {
+            [1] = 1,
+            [2] = nearestPlayer
+        }
+        game:GetService("ReplicatedStorage").remoteInterface.interactions.meleePlayer:FireServer(unpack(args))
+    end
+end
+
+
+local function toggleAutoMelee()
+    AutoMeleeEnabled = not AutoMeleeEnabled
+    AutoMeleeButton.Text = "Kill Aura: ".. (AutoMeleeEnabled and "On" or "Off")
+    if AutoMeleeEnabled then
+        repeatAttack = true
+        while repeatAttack do
+            findNearestPlayer()
+            attackNearestPlayer()
+            wait(0.0014) 
+        end
+    else
+        repeatAttack = false
+    end
+end
+
+
+AutoMeleeButton.Activated:Connect(toggleAutoMelee)
+
+
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.M then
+        toggleAutoMelee()
+    end
+end)
+            end)
+
+            createButtonLeft("Titan Kill Aura", function()
+        local enabled = false
+local platform = nil
+local button = nil
+local hasTeleported = false
+
+-- Create a GUI button
+local gui = game.Players.LocalPlayer.PlayerGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = gui
+button = Instance.new("TextButton")
+button.Text = "Titan Kill Aura: OFF"
+button.Size = UDim2.new(0, 100, 0, 20)
+button.Position = UDim2.new(1, -110, 0, 10)
+button.Font = Enum.Font.SourceSans
+button.FontSize = Enum.FontSize.Size14
+button.TextColor3 = Color3.new(1, 1, 1)
+button.BackgroundColor3 = Color3.new(0, 0, 0)
+button.BorderSizePixel = 0
+button.Parent = screenGui
+
+-- Update button text when enabled state changes
+local function updateButtonText()
+    if enabled then
+        button.Text = "Titan Aura: ON"
+    else
+        button.Text = "Titan Aura: OFF"
+    end
+end
+
+-- Toggle enabled state when button is clicked
+button.MouseButton1Click:Connect(function()
+    enabled = not enabled
+    updateButtonText()
+    hasTeleported = false
+    if platform then
+        platform:Destroy()
+        platform = nil
+    end
+end)
+
+-- Toggle enabled state when L key is pressed
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.L then
+        enabled = not enabled
+        updateButtonText()
+        hasTeleported = false
+        if platform then
+            platform:Destroy()
+            platform = nil
+        end
+    end
+end)
+
+
+while true do
+    if enabled and not hasTeleported then
+
+        local character = game.Players.LocalPlayer.Character
+        if character then
+            local humanoidRootPart = character.HumanoidRootPart
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 10, 0)
+            -- Create invisible platform under the player
+            platform = Instance.new("Part")
+            platform.Size = Vector3.new(10, 0.1, 10)
+            platform.Anchored = true
+            platform.Position = humanoidRootPart.Position - Vector3.new(0, 1, 0)
+            platform.Transparency = 1 
+            platform.CanCollide = true 
+            platform.Parent = workspace
+            hasTeleported = true
+        end
+    end
+    if enabled then
+        
+        local args = {
+            [1] = 1,
+            [2] = workspace.AI_Server["The Titan"]
+        }
+        game:GetService("ReplicatedStorage").remoteInterface.interactions.meleeAI:FireServer(unpack(args))
+        wait(0.0014) -- adjust the delay as needed
+    end
+    wait()
+end
+
+            end)
+
+            createButtonRight("Teleport Above Player", function()
+                local players = game:GetService("Players")
+local character = players.LocalPlayer.Character
+local userInterfaceService = game:GetService("UserInputService")
+local guiService = game:GetService("GuiService")
+local workspace = game:GetService("Workspace")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 100, 0, 20)
+button.Position = UDim2.new(1, -110, 0, 30)
+button.Text = "Teleport Off"
+button.Font = Enum.Font.SourceSans
+button.FontSize = Enum.FontSize.Size14
+button.TextColor3 = Color3.new(1, 1, 1)
+button.BackgroundColor3 = Color3.new(0, 0, 0)
+
+local gui = Instance.new("ScreenGui")
+gui.Parent = game.Players.LocalPlayer.PlayerGui
+button.Parent = gui
+
+local enabled = false
+local platform
+local targetPlayer
+
+local function teleportAbovePlayer(player)
+    local playerPosition = player.Character.HumanoidRootPart.Position
+    local characterPosition = character.HumanoidRootPart.Position
+    local moveStep = 2  -- Distance to move in each step
+    local closeDistance = 10  -- Distance threshold to increase speed
+    local direction = (playerPosition - characterPosition).unit
+    local distance = (playerPosition - characterPosition).magnitude
+
+    if distance > closeDistance then
+        character.HumanoidRootPart.CFrame = CFrame.new(characterPosition + direction * moveStep)
+    else
+        character.HumanoidRootPart.CFrame = CFrame.new(playerPosition + Vector3.new(0, 10, 0))
+    end
+
+    -- Position the platform slightly below the character
+    platform.CFrame = CFrame.new(character.HumanoidRootPart.Position - Vector3.new(0, 2, 0))
+end
+
+local function getNearestPlayer()
+    local nearestPlayer = nil
+    local nearestDistance = math.huge
+    for _, player in pairs(players:GetPlayers()) do
+        if player ~= players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).magnitude
+            if distance < nearestDistance then
+                nearestDistance = distance
+                nearestPlayer = player
+            end
+        end
+    end
+    return nearestPlayer
+end
+
+button.MouseButton1Click:Connect(function()
+    enabled = not enabled
+    if enabled then
+        button.Text = "Teleport On"
+        platform = Instance.new("Part")
+        platform.Size = Vector3.new(10, 0.1, 10)
+        platform.Anchored = true
+        platform.CanCollide = true
+        platform.Transparency = 1  -- Make the platform invisible
+        platform.Parent = workspace
+        targetPlayer = getNearestPlayer()
+    else
+        button.Text = "Teleport Off"
+        if platform then
+            platform:Destroy()
+        end
+        targetPlayer = nil
+    end
+end)
+
+while true do
+    if enabled then
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            teleportAbovePlayer(targetPlayer)
+            wait(0.01) -- Small wait to smooth out movement
+        else
+            targetPlayer = getNearestPlayer()
+            wait(0.1) -- Slightly longer wait when searching for a new target
+        end
+    else
+        wait(0.1) -- Slightly longer wait when not enabled
+    end
+end
+            end)
+
+            local closeButton = Instance.new("TextButton")
+            closeButton.Text = "X"
+            closeButton.Size = UDim2.new(0, 20, 0, 20)
+            closeButton.Font = Enum.Font.SourceSans
+            closeButton.FontSize = Enum.FontSize.Size14
+            closeButton.TextColor3 = Color3.new(1, 1, 1)
+            closeButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+            closeButton.BorderSizePixel = 0
+            closeButton.Position = UDim2.new(1, -20, 0, 0)
+            closeButton.Parent = TitleBar
+
+            closeButton.MouseButton1Click:Connect(function()
+                GUI:Destroy()
+            end)
+
+            local buttonLayoutLeft = Instance.new("UIListLayout")
+            buttonLayoutLeft.Parent = ButtonFrameLeft
+            buttonLayoutLeft.Padding = UDim.new(0, 15)
+            buttonLayoutLeft.SortOrder = Enum.SortOrder.LayoutOrder
+
+            local buttonLayoutRight = Instance.new("UIListLayout")
+            buttonLayoutRight.Parent = ButtonFrameRight
+            buttonLayoutRight.Padding = UDim.new(0, 15)
+            buttonLayoutRight.SortOrder = Enum.SortOrder.LayoutOrder
+
+            for i, button in pairs(buttonsLeft) do
+                buttonLayoutLeft:AddItem(button)
+            end
+
+            for i, button in pairs(buttonsRight) do
+                buttonLayoutRight:AddItem(button)
+            end
